@@ -3,6 +3,7 @@
 --  Place it into your Wireshark "Personal Lua Plugins" folder as set in
 --  Wireshark → Help → About Wireshark → Folders → Personal Lua Plugins
 --  Adds a new protocol named "mvrxchange".
+--  Requires: json.lua
 --
 --  Petr Vaněk @ Robe Lighting
 --  ------------------------------------------------------------------------------------
@@ -16,11 +17,15 @@
 --
 --  Luke Chikkala @ MA Lighting International GmbH
 --  ------------------------------------------------------------------------------------
+--  Formatting style: use lua54 stylua formatter from https://github.com/JohnnyMorganz/StyLua
+--  Installation: cargo install stylua --features lua54
+--  Usage: stylua mvrxchange.lua
 
 local mvrxchange = Proto("mvrxchange", "MVRxchange")
 json = require("json")
 
 local mvr_fields = mvrxchange.fields
+local station_name_table = {}
 
 mvr_fields.header = ProtoField.uint32("mvrxchange.header", "Header", base.HEX)
 mvr_fields.version = ProtoField.uint32("mvrxchange.version", "Version", base.DEC)
@@ -43,11 +48,15 @@ mvr_fields.message_commits = ProtoField.string("mvrxchange.message_commits", "Co
 mvr_fields.message_commit = ProtoField.string("mvrxchange.message_commit", "Commit")
 mvr_fields.message_files = ProtoField.string("mvrxchange.message_files", "Files")
 mvr_fields.message_station_uuid = ProtoField.string("mvrxchange.message_station_uuid", "Station UUID")
+mvr_fields.message_for_station_uuid = ProtoField.string("mvrxchange.message_for_station_uuid", "For Station UUID ")
 mvr_fields.message_from_station_uuid = ProtoField.string("mvrxchange.message_from_station_uuid", "From Station UUID ")
+mvr_fields.message_file_size = ProtoField.string("mvrxchange.message_file_size", "File Size")
 mvr_fields.message_file_uuid = ProtoField.string("mvrxchange.message_file_uuid", "File UUID")
 mvr_fields.message_file_comment = ProtoField.string("mvrxchange.message_file_comment", "File Comment")
 mvr_fields.message_file_file_name = ProtoField.string("mvrxchange.message_file_file_name", "File Name")
 mvr_fields.message_errors = ProtoField.string("mvrxchange.message_errors", "Errors")
+mvr_fields.message_service_name = ProtoField.string("mvrxchange.service_name", "ServiceName")
+mvr_fields.message_service_url = ProtoField.string("mvrxchange.service_url", "ServiceURL")
 
 function process_message(data, subtree)
 	subtree:add(mvr_fields.message_type):append_text(data["Type"])
@@ -67,20 +76,48 @@ function process_message(data, subtree)
 	if data["verMajor"] ~= nil then
 		subtree:add(mvr_fields.message_ver_major):append_text(data["verMajor"])
 	end
+	if data["FileSize"] ~= nil then
+		subtree:add(mvr_fields.message_file_size):append_text(data["FileSize"])
+	end
+	if data["FileName"] ~= nil then
+		subtree:add(mvr_fields.message_file_file_name):append_text(data["FileName"])
+	end
+	if data["ForStationUUID"] ~= nil then
+		local uuids = data["ForStationUUID"]
+		if type(uuids) == "table" then
+			if #uuids > 0 then
+				for _, uuid in ipairs(uuids) do
+					subtree:add(mvr_fields.message_from_station_uuid):append_text(uuid)
+				end
+			else
+				subtree:add(mvr_fields.message_from_station_uuid):append_text("[]")
+			end
+		end
+	end
+
 	if data["Comment"] ~= nil then
 		subtree:add(mvr_fields.message_comment):append_text(data["Comment"])
 	end
 	if data["Commits"] ~= nil then
-		commits = subtree:add(mvr_fields.message_commits):append_text("" .. tostring(#data["Commits"]) .. "")
-		for k, v in pairs(data["Commits"]) do
-			print("Commit", v.Type, v.FileUUID, v.StationUUID, v.Comment, v.FileName)
-			commit = commits:add(mvr_fields.message_commit):append_text(v.FileUUID)
-			if v.Comment ~= nil then
-				commit:add(mvr_fields.message_file_comment):append_text(v.Comment)
+		local commits = subtree:add(mvr_fields.message_commits)
+
+		if type(data["Commits"]) == "table" and #data["Commits"] > 0 then
+			commits:append_text("" .. tostring(#data["Commits"]) .. "")
+			for k, v in pairs(data["Commits"]) do
+				print("Commit", v.Type, v.FileUUID, v.StationUUID, v.Comment, v.FileName, v.FileSize)
+				local commit = commits:add(mvr_fields.message_commit):append_text(v.FileUUID)
+				if v.FileSize ~= nil then
+					commit:add(mvr_fields.message_file_size):append_text(v.FileSize)
+				end
+				if v.Comment ~= nil then
+					commit:add(mvr_fields.message_file_comment):append_text(v.Comment)
+				end
+				if v.FileName ~= nil then
+					commit:add(mvr_fields.message_file_file_name):append_text(v.FileName)
+				end
 			end
-			if v.FileName ~= nil then
-				commit:add(mvr_fields.message_file_file_name):append_text(v.FileName)
-			end
+		else
+			commits:append_text("[]")
 		end
 	end
 	if data["Files"] ~= nil then
@@ -102,14 +139,46 @@ function process_message(data, subtree)
 			errsubtree:add_expert_info(PI_MALFORMED, PI_WARN, "UUID can be empty or UUID but should not be 0")
 		end
 	end
+
 	if data["FromStationUUID"] ~= nil then
-		if is_not_table(data["FromStationUUID"]) then
-			errsubtree = subtree:add(mvr_fields.message_from_station_uuid):append_text(data["FromStationUUID"])
-			if data["FromStationUUID"] == "" then
+		local uuids = data["FromStationUUID"]
+
+		if is_not_table(uuids) then
+			-- Handle the case where FromStationUUID is not a table
+			local errsubtree = subtree:add(mvr_fields.message_from_station_uuid):append_text(uuids)
+			if uuids == "" then
 				errsubtree:add_expert_info(PI_MALFORMED, PI_WARN, "Should not be empty")
+			end
+		elseif type(uuids) == "table" then
+			-- Handle the case where FromStationUUID is a table
+			if #uuids > 0 then
+				for _, uuid in ipairs(uuids) do
+					subtree:add(mvr_fields.message_from_station_uuid):append_text(uuid)
+				end
+			else
+				subtree:add(mvr_fields.message_from_station_uuid):append_text("[]") -- Display empty array indicator
 			end
 		end
 	end
+
+	if data["ServiceName"] ~= nil then
+		subtree:add(mvr_fields.message_service_name):append_text(data["ServiceName"])
+	end
+	if data["ServiceURL"] ~= nil then
+		subtree:add(mvr_fields.message_service_url):append_text(data["ServiceURL"])
+	end
+end
+
+function get_stored_station_name(key_src, key_dst)
+	local stored_station_name_src = station_name_table[key_src]
+	local stored_station_name_dst = station_name_table[key_dst]
+	local result
+	if stored_station_name_src then
+		result = stored_station_name_src
+	elseif stored_station_name_dst then
+		result = stored_station_name_dst
+	end
+	return result
 end
 
 function mvrxchange.dissector(tvbuf, pinfo, tree)
@@ -139,33 +208,51 @@ function mvrxchange.dissector(tvbuf, pinfo, tree)
 	t:add(mvr_fields.length, tvbuf(20, 8))
 	t:add(mvr_fields.real_length, tvbuf(28, len):len())
 
+	local src_ip = pinfo.src
+	local src_port = pinfo.src_port
+	local dst_port = pinfo.dst_port
+	local key_src = tostring(src_ip) .. ":" .. tostring(src_port)
+	local key_dst = tostring(src_ip) .. ":" .. tostring(dst_port)
+
 	if mvr_type:uint() == 0 and message:len() > 2 then
 		local s = t:add(mvr_fields.message)
 		-- print( "Message", message:string() )
 		local decoded = json.decode(message:string())
 
-		-- ------------------------------------------------------------------------------------
-		--  If "Type" and "Provider" are found, this information is displayed in the Info
-		--  column.
-		--  Else, only "Type" is displayed.
-		-- ------------------------------------------------------------------------------------
 		local mvr_type = decoded["Type"]
 		local type_length = #mvr_type
 
 		if decoded["Type"] ~= nil then
-			if decoded["Provider"] ~= nil then
-				local mvr_provider = decoded["Provider"]
-				info:set(mvr_type .. string.rep(" ", 21 - type_length) .. " | " .. mvr_provider)
+			if decoded["StationName"] ~= nil then
+				local mvr_station_name = decoded["StationName"]
+				station_name_table[key_src] = mvr_station_name
+				station_name_table[key_dst] = mvr_station_name
+				info:set(mvr_type .. string.rep(" ", 21 - type_length) .. " | " .. mvr_station_name)
 			else
-				info:set(mvr_type .. string.rep(" ", 21 - type_length))
+				local stored_station_name = get_stored_station_name(key_src, key_dst)
+				if stored_station_name then
+					info:set(mvr_type .. string.rep(" ", 21 - type_length) .. " | " .. stored_station_name)
+				else
+					info:set(mvr_type .. string.rep(" ", 21 - type_length))
+				end
 			end
 		end
+
 		-- ------------------------------------------------------------------------------------
 
 		process_message(decoded, s)
 	else
-		t:add(mvr_fields.message, tvbuf(0, 0)):append_text("File transfer")
-		info:set("MVR File Transfer")
+		local stored_station_name = get_stored_station_name(key_src, key_dst)
+		local mvr_file_transfer_label = "MVR File Transfer"
+		local type_length = #mvr_file_transfer_label
+
+		if stored_station_name then
+			info:set(mvr_file_transfer_label .. string.rep(" ", 21 - type_length) .. " | " .. stored_station_name)
+		else
+			info:set(mvr_file_transfer_label)
+		end
+
+		t:add(mvr_fields.message, tvbuf(0, 0)):append_text(mvr_file_transfer_label)
 	end
 end
 
