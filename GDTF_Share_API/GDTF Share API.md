@@ -75,13 +75,13 @@ This function allows the user login by username and password.
         <td>user</td>
         <td>Required</td>
         <td>Username as registered in the GDTF Share.</td>
-        <td>String</td>
+        <td>URL Encoded String</td>
     </tr>
     <tr>
         <td>password</td>
         <td>Required</td>
         <td>Password of the user account.</td>
-        <td>String</td>
+        <td>URL Encoded String</td>
     </tr>
 </table>
 
