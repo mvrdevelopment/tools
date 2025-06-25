@@ -283,4 +283,13 @@ function is_not_table(t)
 	return type(t) ~= "table"
 end
 
+function mvrxchange.init()
+	local tcp_table = DissectorTable.get("tcp.port")
+	local proto_cbsp = tcp_table:get_dissector(48049)
+	if proto_cbsp then
+		tcp_table:remove(48049, proto_cbsp) --remove conflicting protocol dissector
+		-- you can use this as an example of how to remove conflicting dissectors during network investigation
+	end
+end
+
 mvrxchange:register_heuristic("tcp", heuristic_checker)
