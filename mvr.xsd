@@ -121,6 +121,7 @@ must be checked at parser level because of limitations of XSD 1.0.
           <xs:element name="CustomIdType" type="xs:integer" minOccurs="0"/>
           <xs:element name="ChildList" type="ChildList" minOccurs="0"/>
         </xs:all>
+        <xs:attribute name="multipatch" type="guidtype" default=""/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -313,7 +314,7 @@ must be checked at parser level because of limitations of XSD 1.0.
           <xs:element name="UnitNumber" type="positiveinteger" minOccurs="0"/>
           <xs:element name="CustomIdType" type="xs:integer" minOccurs="0"/>
           <xs:element name="CustomId" type="xs:integer" minOccurs="0"/>
-          <xs:element name="ChildList" type="ChildList"/>
+          <xs:element name="ChildList" type="ChildList" minOccurs="0"/>
         </xs:sequence>
         <xs:attribute name="multipatch" type="guidtype" default=""/>
       </xs:extension>
@@ -337,7 +338,7 @@ must be checked at parser level because of limitations of XSD 1.0.
           <xs:element name="CustomCommands" type="CustomCommands" minOccurs="0"/>
           <xs:element name="Overwrites" type="Overwrites" minOccurs="0"/>
           <xs:element name="Connections" type="Connections" minOccurs="0"/>
-          <xs:element name="ChildList" type="ChildList"/>
+          <xs:element name="ChildList" type="ChildList" minOccurs="0"/>
           <xs:element name="FixtureID" type="xs:string"/>
           <xs:element name="FixtureIDNumeric" type="positiveinteger" minOccurs="0"/> <!-- minOccurs="0" for backwards compatability -->
           <xs:element name="FixtureTypeId" type="positiveinteger" minOccurs="0"/> <!-- backwards compatability -->
@@ -366,7 +367,7 @@ must be checked at parser level because of limitations of XSD 1.0.
           <xs:element name="CustomCommands" type="CustomCommands" minOccurs="0"/>
           <xs:element name="Overwrites" type="Overwrites" minOccurs="0"/>
           <xs:element name="Connections" type="Connections" minOccurs="0"/>
-          <xs:element name="ChildList" type="ChildList"/>
+          <xs:element name="ChildList" type="ChildList" minOccurs="0"/>
           <xs:element name="FixtureID" type="xs:string"/>
           <xs:element name="FixtureIDNumeric" type="positiveinteger" minOccurs="0"/> <!-- minOccurs="0" for backwards compatability -->
           <xs:element name="FixtureTypeId" type="positiveinteger" minOccurs="0"/> <!-- backwards compatability -->
