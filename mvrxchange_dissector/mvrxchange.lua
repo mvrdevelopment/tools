@@ -82,15 +82,15 @@ function process_message(data, subtree)
 	if data["FileName"] ~= nil then
 		subtree:add(mvr_fields.message_file_file_name):append_text(data["FileName"])
 	end
-	if data["ForStationUUID"] ~= nil then
-		local uuids = data["ForStationUUID"]
+	if data["ForStationsUUID"] ~= nil then
+		local uuids = data["ForStationsUUID"]
 		if type(uuids) == "table" then
 			if #uuids > 0 then
 				for _, uuid in ipairs(uuids) do
-					subtree:add(mvr_fields.message_from_station_uuid):append_text(uuid)
+					subtree:add(mvr_fields.message_for_station_uuid):append_text(uuid)
 				end
 			else
-				subtree:add(mvr_fields.message_from_station_uuid):append_text("[]")
+				subtree:add(mvr_fields.message_for_station_uuid):append_text("[]")
 			end
 		end
 	end
@@ -106,6 +106,7 @@ function process_message(data, subtree)
 			for k, v in pairs(data["Commits"]) do
 				-- print("Commit", v.Type, v.FileUUID, v.StationUUID, v.Comment, v.FileName, v.FileSize)
 				local commit = commits:add(mvr_fields.message_commit):append_text(v.FileUUID)
+				commit:add(mvr_fields.message_type):append_text(v.Type)
 				if v.FileSize ~= nil then
 					commit:add(mvr_fields.message_file_size):append_text(v.FileSize)
 				end
@@ -115,12 +116,13 @@ function process_message(data, subtree)
 				if v.FileName ~= nil then
 					commit:add(mvr_fields.message_file_file_name):append_text(v.FileName)
 				end
-				commit:add(mvr_fields.message_type):append_text(v.Type)
 				commit:add(mvr_fields.message_station_uuid):append_text(v.StationUUID)
 				commit:add(mvr_fields.message_ver_major):append_text(v.verMajor)
 				commit:add(mvr_fields.message_ver_minor):append_text(v.verMinor)
-				for k, v in pairs(v["ForStationsUUID"]) do
-					commit:add(mvr_fields.message_for_station_uuid):append_text(v.ForStationsUUID)
+				if v["ForStationsUUID"] and type(v["ForStationsUUID"]) == "table" then
+					for _, uuid in ipairs(v["ForStationsUUID"]) do
+						commit:add(mvr_fields.message_for_station_uuid):append_text(uuid)
+					end
 				end
 			end
 		else
