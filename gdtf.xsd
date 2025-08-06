@@ -202,7 +202,7 @@ level. These unvalidated properties are:
 <xs:attribute name="MainAttribute" type="nametype"/>
 <xs:attribute name="PhysicalUnit" type="PhysicalUnitEnum"
   default="None"/>
-  <xs:attribute name="Color" type="colorcietype"/>
+  <xs:attribute name="Color" type="vector3type"/>
 </xs:complexType>
 <xs:complexType name="SubPhysicalUnit">
  <xs:attribute name="Type" type="SubPhysicalTypeEnum"/>
@@ -233,12 +233,12 @@ level. These unvalidated properties are:
     <xs:element name="AnimationSystem" type="AnimationSystem"/>
   </xs:choice>
   <xs:attribute name="Name" type="xs:string" use="required"/>
-  <xs:attribute name="Color" type="colorcietype"/>
+  <xs:attribute name="Color" type="vector3type"/>
   <xs:attribute name="Filter" type="nametype"/>
   <xs:attribute name="MediaFileName" type="xs:string" default=""/>
 </xs:complexType>
 <xs:complexType name="Facet">
-  <xs:attribute name="Color" type="colorcietype"/>
+  <xs:attribute name="Color" type="vector3type"/>
   <xs:attribute name="Rotation" type="rotationtype" use="required"/>
 </xs:complexType>
 <xs:complexType name="AnimationSystem">
@@ -292,7 +292,7 @@ level. These unvalidated properties are:
     </xs:element>
   </xs:sequence>
   <xs:attribute name="Name" type="nametype" use="required"/>
-  <xs:attribute name="Color" type="colorcietype"/>
+  <xs:attribute name="Color" type="vector3type"/>
   <xs:attribute name="DominantWaveLength" type="xs:float"/> <!-- Required if Color is omitted! -->
   <xs:attribute name="DiodePart" type="xs:string"/>
 </xs:complexType>
@@ -325,7 +325,7 @@ level. These unvalidated properties are:
         </xs:element>
       </xs:sequence>
       <xs:attribute name="Name" type="nametype" use="required"/>
-      <xs:attribute name="Color" type="colorcietype"/>
+      <xs:attribute name="Color" type="vector3type"/>
     </xs:complexType>
     <xs:complexType name="FilterMeasurement">
       <xs:sequence minOccurs="0" maxOccurs="unbounded">
@@ -343,10 +343,10 @@ level. These unvalidated properties are:
     <xs:complexType name="ColorSpace">
       <xs:attribute name="Name" type="nametype"/>
       <xs:attribute name="Mode" type="ColorSpaceEnum" default="sRGB"/>
-      <xs:attribute name="Red" type="colorcietype"/>
-      <xs:attribute name="Green" type="colorcietype"/>
-      <xs:attribute name="Blue" type="colorcietype"/>
-      <xs:attribute name="WhitePoint" type="colorcietype"/>
+      <xs:attribute name="Red" type="vector3type"/>
+      <xs:attribute name="Green" type="vector3type"/>
+      <xs:attribute name="Blue" type="vector3type"/>
+      <xs:attribute name="WhitePoint" type="vector3type"/>
     </xs:complexType>
     <xs:complexType name="AdditionalColorSpaces">
       <xs:sequence minOccurs="0" maxOccurs="unbounded">
@@ -637,7 +637,7 @@ level. These unvalidated properties are:
                 <xs:extension base="GeometryReference">
                   <xs:attribute name="SupportType" type="SupportType"/>
                   <xs:attribute name="RopeCrossSection" type="xs:string"/>
-                  <xs:attribute name="RopeOffset" type="xs:string"/>
+                  <xs:attribute name="RopeOffset" type="vector3type"/>
                   <xs:attribute name="CapacityX" type="xs:float"/>
                   <xs:attribute name="CapacityY" type="xs:float"/>
                   <xs:attribute name="CapacityZ" type="xs:float"/>
@@ -897,7 +897,7 @@ level. These unvalidated properties are:
       <xs:pattern value="None|(\{-?[0-9]+\.?[0-9]*(,-?[0-9]+\.?[0-9]*){2}\}){3}"/>
     </xs:restriction>
   </xs:simpleType>
-  <xs:simpleType name="colorcietype">
+  <xs:simpleType name="vector3type">
     <xs:restriction base="xs:string">
       <xs:pattern value="None|-?[0-9]+(\.[0-9]+)?,-?[0-9]+(\.[0-9]+)?,-?[0-9]+(\.[0-9]+)?"/>
     </xs:restriction>
