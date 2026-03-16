@@ -346,7 +346,7 @@ For a successful download, the file is returned as a binary stream. For an error
 </table>
 
 
-## Sample request
+### Sample request
 
 ```
 curl    -b session.txt https://gdtf-share.com/apis/public/downloadFile.php?rid=12345
@@ -354,7 +354,7 @@ curl    -b session.txt https://gdtf-share.com/apis/public/downloadFile.php?rid=1
 ```
 
 
-## Sample response
+### Sample response
 
 __On success:__ HTTP Code 200
 
