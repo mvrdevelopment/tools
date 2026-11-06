@@ -66,7 +66,7 @@ the credit “Powered by GDTF” in the product user manual, digital About scree
 or accompanying technical documentation, and display the GDTF logo alongside
 the credit:
 
-{{< figure src="media/gdtf.svg" link="https://www.gdtf-share.com/" alt="GDTF & MVR Logo" caption="Powered by GDTF" height="130px" class="left">}}
+<img src="media/gdtf.svg" link="https://www.gdtf-share.com/" alt="GDTF & MVR Logo" caption="Powered by GDTF" height="130px" class="left" />
 
 ## Reporting GDTF Share API Issues
 
